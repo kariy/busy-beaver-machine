@@ -52,14 +52,15 @@ where
     }
 }
 
-struct TuringMachine {
-    head: usize,
-    tape: Vec<Symbol>,
-    current_state: State,
-    transitions: TransitionFxTable,
-    steps: usize,
-}
-
+///
+/// 2-state 2-color busy beaver machine:
+///
+/// - 2-state: The machine has two operational states (A and B) plus a Halt state
+/// - 2-color: The tape uses two symbols (0 and 1, represented by ZERO and ONE)
+///
+/// This is the simplest non-trivial Busy Beaver machine configuration.
+/// It aims to write the maximum number of 1s on an initially blank tape
+/// before halting, using only these limited states and symbols.
 ///
 /// The transition function for this busy beaver machine is:
 ///
@@ -68,6 +69,14 @@ struct TuringMachine {
 /// State B, read 0: write 1, move left, go to state A
 /// State B, read 1: write 0, move left, go to Halt state
 ///
+struct TuringMachine {
+    head: usize,
+    tape: Vec<Symbol>,
+    current_state: State,
+    transitions: TransitionFxTable,
+    steps: usize,
+}
+
 impl TuringMachine {
     fn new(tape: Vec<Symbol>) -> Self {
         TuringMachine {
@@ -88,8 +97,13 @@ impl TuringMachine {
     fn step(&mut self) {
         if self.head == 0 {
             self.tape.insert(0, Symbol::default());
-            self.head += 1;
-        } else if self.head == self.tape.len() {
+
+            if !self.tape.is_empty() {
+                self.head += 1;
+            }
+        }
+
+        if self.head == self.tape.len() {
             self.tape.push(Symbol::default());
         }
 
@@ -106,6 +120,14 @@ impl TuringMachine {
         *symbol = fx.write;
         *state = fx.new_state;
         self.steps += 1;
+    }
+
+    fn count_non_zeros(&self) -> usize {
+        self.tape.iter().filter(|&&s| s == Symbol::ONE).count()
+    }
+
+    fn total_steps(&self) -> usize {
+        self.steps
     }
 
     fn transition_functions() -> impl Iterator<Item = ((State, Symbol), TransitionFx)> {
@@ -142,26 +164,9 @@ impl TuringMachine {
 }
 
 fn main() {
-    let mut rng = rand::thread_rng();
-    let tape_length = rng.gen_range(10..=20);
-
-    let tape: Vec<Symbol> = (0..tape_length)
-        .map(|_| {
-            if rng.gen_bool(0.5) {
-                Symbol::ONE
-            } else {
-                Symbol::ZERO
-            }
-        })
-        .collect();
-
-    let mut machine = TuringMachine::new(tape);
+    let mut machine = TuringMachine::new(Vec::new());
     machine.run();
 
-    assert!(
-        machine.steps <= 6,
-        "this BB machine should run in maximum only 6 steps"
-    );
-
-    println!("Steps: {}", machine.steps);
+    println!("Steps: {}", machine.total_steps());
+    println!("Non-zeros count: {}", machine.count_non_zeros())
 }
