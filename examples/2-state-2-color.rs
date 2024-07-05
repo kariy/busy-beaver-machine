@@ -33,43 +33,40 @@ enum Symbol {
 }
 
 fn main() {
-    let mut machine = TuringMachine::<State, Symbol>::new(
-        Vec::new(),
-        Box::new(|ctx| {
-            let current_state = *ctx.state;
-            let current_symbol = ctx.tape[*ctx.head];
+    let mut machine = TuringMachine::new(Vec::new(), |ctx| {
+        let current_state = *ctx.state;
+        let current_symbol = ctx.tape[*ctx.head];
 
-            match (current_state, current_symbol) {
-                (State::A, Symbol::ZERO) => {
-                    ctx.tape[*ctx.head] = Symbol::ONE;
-                    *ctx.head += 1;
-                    *ctx.state = State::B;
-                }
-
-                (State::A, Symbol::ONE) => {
-                    ctx.tape[*ctx.head] = Symbol::ONE;
-                    *ctx.head -= 1;
-                    *ctx.state = State::B;
-                }
-
-                (State::B, Symbol::ZERO) => {
-                    ctx.tape[*ctx.head] = Symbol::ONE;
-                    *ctx.head -= 1;
-                    *ctx.state = State::A;
-                }
-
-                (State::B, Symbol::ONE) => {
-                    ctx.tape[*ctx.head] = Symbol::ZERO;
-                    *ctx.head -= 1;
-                    *ctx.state = State::Halt;
-                }
-
-                (State::Halt, _) => {}
+        match (current_state, current_symbol) {
+            (State::A, Symbol::ZERO) => {
+                ctx.tape[*ctx.head] = Symbol::ONE;
+                *ctx.head += 1;
+                *ctx.state = State::B;
             }
-        }),
-    );
+
+            (State::A, Symbol::ONE) => {
+                ctx.tape[*ctx.head] = Symbol::ONE;
+                *ctx.head -= 1;
+                *ctx.state = State::B;
+            }
+
+            (State::B, Symbol::ZERO) => {
+                ctx.tape[*ctx.head] = Symbol::ONE;
+                *ctx.head -= 1;
+                *ctx.state = State::A;
+            }
+
+            (State::B, Symbol::ONE) => {
+                ctx.tape[*ctx.head] = Symbol::ZERO;
+                *ctx.head -= 1;
+                *ctx.state = State::Halt;
+            }
+
+            (State::Halt, _) => {}
+        }
+    });
 
     machine.run();
 
-    println!("Steps: {}", machine.total_steps());
+    println!("Steps: {}", machine.steps());
 }

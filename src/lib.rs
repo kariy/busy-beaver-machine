@@ -26,13 +26,16 @@ where
     S: State,
     C: Color,
 {
-    pub fn new(tape: Vec<C>, transition_fn: Box<dyn FnMut(Ctx<'_, S, C>)>) -> Self {
+    pub fn new<F>(tape: Vec<C>, transition_fn: F) -> Self
+    where
+        F: FnMut(Ctx<'_, S, C>) + 'static,
+    {
         TuringMachine {
             tape,
             head: 0,
             steps: 0,
-            transition_fn,
             current_state: S::default(),
+            transition_fn: Box::new(transition_fn),
         }
     }
 
@@ -55,13 +58,7 @@ where
             self.tape.push(C::default());
         }
 
-        let ctx = Ctx {
-            head: &mut self.head,
-            state: &mut self.current_state,
-            tape: &mut self.tape,
-        };
-
-        (self.transition_fn)(ctx);
+        self.run_transition();
         self.steps += 1;
     }
 
@@ -69,7 +66,15 @@ where
         &self.tape
     }
 
-    pub fn total_steps(&self) -> usize {
+    pub fn steps(&self) -> usize {
         self.steps
+    }
+
+    fn run_transition(&mut self) {
+        (self.transition_fn)(Ctx {
+            head: &mut self.head,
+            tape: &mut self.tape,
+            state: &mut self.current_state,
+        });
     }
 }
