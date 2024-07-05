@@ -1,6 +1,6 @@
 //! 2-state 2-color busy beaver machine:
 //!
-//! - 2-state: The machine has two operational states (A and B) plus a Halt state
+//! - 2-state: The machine has two operational states (A and B) plus an implicit Halt state
 //! - 2-color: The tape uses two symbols (0 and 1, represented by ZERO and ONE)
 //!
 //! This is the simplest non-trivial Busy Beaver machine configuration.
